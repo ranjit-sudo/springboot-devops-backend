@@ -14,21 +14,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: temurin
+
       - name: Cache Maven dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
+
       - name: Build with Maven
         run: mvn clean verify --batch-mode
+
       - name: Archive Test Results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-results
           path: target/surefire-reports/
@@ -38,15 +42,18 @@ jobs:
     needs: build-and-test
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+
       - name: Cache Docker layers
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-docker-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-docker-
+
       - name: Build Docker image
         uses: docker/build-push-action@v5
         with:
@@ -61,19 +68,23 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
-      # Uncomment and add your AWS credentials in GitHub Secrets for real deployment
+
+      # Uncomment these for real AWS deployment:
       # - name: Configure AWS credentials
       #   uses: aws-actions/configure-aws-credentials@v4
       #   with:
       #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
       #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       #     aws-region: ${{ env.AWS_REGION }}
+
       # - name: Login to Amazon ECR
-      #   uses: aws-actions/amazon-ecr-login@v1
+      #   uses: aws-actions/amazon-ecr-login@v2
+
       # - name: Push Docker image
       #   run: |
       #     docker tag springboot-devops-backend:${{ github.sha }} <your-ecr-uri>:latest
       #     docker push <your-ecr-uri>:latest
+
       # - name: Deploy to ECS
       #   run: |
       #     aws ecs update-service --cluster <cluster-name> --service <service-name> --force-new-deployment
